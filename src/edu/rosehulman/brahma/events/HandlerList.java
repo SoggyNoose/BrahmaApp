@@ -15,15 +15,14 @@ public class HandlerList {
 	public void addListener(final Listener listener) {
 		Class<? extends Listener> listenClass = listener.getClass();
 		
+		// Go through all the methods in the class to determine which 
+		// have the EventHandler annotation
 		Method[] methods = listenClass.getMethods();
 		for (final Method method : methods) {
 			Annotation annotation = method.getAnnotation(EventHandler.class);
 			if (annotation != null) {
 				Class<?>[] parameters = method.getParameterTypes();
-				if (parameters.length != 1) {
-					continue;
-				}
-				if (!parameters[0].isAssignableFrom(Event.class)) {
+				if (parameters.length != 1 || !parameters[0].isAssignableFrom(Event.class)) {
 					continue;
 				}
 				
