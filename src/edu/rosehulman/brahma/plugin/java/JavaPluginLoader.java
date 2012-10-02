@@ -9,6 +9,7 @@ import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
 import edu.rosehulman.brahma.PluginLoader;
+import edu.rosehulman.brahma.events.plugin.PluginLoadEvent;
 import edu.rosehulman.brahma.plugin.Plugin;
 
 public class JavaPluginLoader implements PluginLoader {

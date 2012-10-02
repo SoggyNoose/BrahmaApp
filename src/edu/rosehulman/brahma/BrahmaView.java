@@ -4,7 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.EventQueue;
-import java.util.HashMap;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
@@ -17,10 +16,13 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import edu.rosehulman.brahma.events.EventHandler;
+import edu.rosehulman.brahma.events.Listener;
+import edu.rosehulman.brahma.events.plugin.PluginLoadEvent;
 import edu.rosehulman.brahma.plugin.Plugin;
 
-public class BrahmaView {
-	// GUI Widgets that we will need
+public class BrahmaView implements Listener {
+		// GUI Widgets that we will need
 		private JFrame frame;
 		private JPanel contentPane;
 		private JLabel bottomLabel;
@@ -35,6 +37,15 @@ public class BrahmaView {
 		PluginManager pluginManager;
 		
 		public BrahmaView() {
+			try {
+				this.pluginManager = new PluginManager();
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+			}
+			
+			this.pluginManager.registerEvents(this);
+			
 			// Lets create the elements that we will need
 			frame = new JFrame("Pluggable Board Application");
 			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -102,12 +113,6 @@ public class BrahmaView {
 			});
 			
 			// Start the plugin manager now that the core is ready
-			try {
-				this.pluginManager = new PluginManager();
-			}
-			catch(Exception e) {
-				e.printStackTrace();
-			}
 			Thread thread = new Thread(this.pluginManager);
 			thread.start();
 		}
@@ -131,19 +136,8 @@ public class BrahmaView {
 			});
 		}
 		
-//		public void addPlugin(Plugin plugin) {
-//			this.idToPlugin.put(plugin.getId(), plugin);
-//			this.listModel.addElement(plugin.getId());
-//			this.bottomLabel.setText("The " + plugin.getId() + " plugin has been recently added!");
-//		}
-//		
-//		public void removePlugin(String id) {
-//			Plugin plugin = this.idToPlugin.remove(id);
-//			this.listModel.removeElement(id);
-//			
-//			// Stop the plugin if it is still running
-//			plugin.stop();
-//
-//			this.bottomLabel.setText("The " + plugin.getId() + " plugin has been recently removed!");
-//		}
+		@EventHandler
+		public void addPluginToList(PluginLoadEvent event) {
+			listModel.addElement(event.getPlugin().getName());
+		}
 }

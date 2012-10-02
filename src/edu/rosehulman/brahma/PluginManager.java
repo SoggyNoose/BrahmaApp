@@ -11,6 +11,7 @@ import java.util.Map;
 
 import edu.rosehulman.brahma.events.HandlerList;
 import edu.rosehulman.brahma.events.Listener;
+import edu.rosehulman.brahma.events.plugin.PluginLoadEvent;
 import edu.rosehulman.brahma.plugin.Plugin;
 import edu.rosehulman.brahma.plugin.java.JavaPluginLoader;
 
@@ -72,6 +73,10 @@ public class PluginManager implements IPluginManager, Runnable {
 		}
 	}
 
+	protected void registerEvents(Listener listener) {
+		this.handlerList.addListener(listener);
+	}
+	
 	@Override
 	public void loadBundle(Path bundlePath) {
 		Plugin plugin;
@@ -81,6 +86,9 @@ public class PluginManager implements IPluginManager, Runnable {
 				PluginLoader loader = filetypeAssociation.get(filetype);
 				try {
 					plugin = loader.loadPlugin(bundlePath.toFile());
+					
+					PluginLoadEvent event = new PluginLoadEvent(plugin);
+					this.handlerList.callEvent(event);
 					
 					plugins.add(plugin);
 					lookupTable.put(bundlePath, plugin);

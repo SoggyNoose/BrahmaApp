@@ -3,6 +3,7 @@ package edu.rosehulman.brahma.events;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -12,17 +13,21 @@ public class HandlerList {
 	
 	private Map<Class<? extends Event>, List<EventExecutor>> listeners;
 	
+	public HandlerList() {
+		listeners = new HashMap<Class<? extends Event>, List<EventExecutor>>();
+	}
+	
 	public void addListener(final Listener listener) {
 		Class<? extends Listener> listenClass = listener.getClass();
 		
 		// Go through all the methods in the class to determine which 
 		// have the EventHandler annotation
-		Method[] methods = listenClass.getMethods();
+		Method[] methods = listenClass.getDeclaredMethods();
 		for (final Method method : methods) {
-			Annotation annotation = method.getAnnotation(EventHandler.class);
+			EventHandler annotation = method.getAnnotation(EventHandler.class);
 			if (annotation != null) {
 				Class<?>[] parameters = method.getParameterTypes();
-				if (parameters.length != 1 || !parameters[0].isAssignableFrom(Event.class)) {
+				if (parameters.length != 1 || !Event.class.isAssignableFrom(parameters[0])) {
 					continue;
 				}
 				
@@ -52,6 +57,10 @@ public class HandlerList {
 	
 	public void callEvent(Event event) {
 		List<EventExecutor> handlers = this.listeners.get(event.getClass());
+		
+		if (handlers == null) {
+			return;
+		}
 		
 		for (EventExecutor handler : handlers) {
 			handler.execute(event);
