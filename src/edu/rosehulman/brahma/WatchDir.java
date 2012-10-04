@@ -100,7 +100,7 @@ public class WatchDir {
     /**
      * Creates a WatchService and registers the given directory
      */
-    WatchDir(PluginManager manager, Path dir, boolean recursive) throws IOException {
+    WatchDir(IPluginManager manager, Path dir, boolean recursive) throws IOException {
     	this.manager = manager;
         this.watcher = FileSystems.getDefault().newWatchService();
         this.keys = new HashMap<WatchKey,Path>();

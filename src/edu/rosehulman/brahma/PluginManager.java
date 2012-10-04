@@ -11,11 +11,13 @@ import java.util.Map;
 
 import edu.rosehulman.brahma.events.HandlerList;
 import edu.rosehulman.brahma.events.Listener;
+import edu.rosehulman.brahma.events.plugin.PluginDisableEvent;
+import edu.rosehulman.brahma.events.plugin.PluginEnableEvent;
 import edu.rosehulman.brahma.events.plugin.PluginLoadEvent;
 import edu.rosehulman.brahma.plugin.Plugin;
 import edu.rosehulman.brahma.plugin.java.JavaPluginLoader;
 
-public class PluginManager implements IPluginManager, Runnable {
+public class PluginManager implements IPluginManager {
 	
 	private final HandlerList handlerList;
 	
@@ -27,7 +29,7 @@ public class PluginManager implements IPluginManager, Runnable {
 	
 	private final Class[] loaders = { JavaPluginLoader.class }; 
 	
-	public PluginManager() throws IOException {
+	protected PluginManager() throws IOException {
 		this.handlerList = new HandlerList();
 		watchDir = new WatchDir(this, FileSystems.getDefault().getPath("plugins"), false);
 	}
@@ -69,11 +71,12 @@ public class PluginManager implements IPluginManager, Runnable {
 	@Override
 	public void registerEvents(Listener listener, Plugin plugin) {
 		if (plugin.isEnabled()) {
-			this.handlerList.addListener(listener);
+			this.registerEvents(listener);
 		}
 	}
 
-	protected void registerEvents(Listener listener) {
+	@Override
+	public void registerEvents(Listener listener) {
 		this.handlerList.addListener(listener);
 	}
 	
@@ -106,5 +109,30 @@ public class PluginManager implements IPluginManager, Runnable {
 		Plugin plugin = lookupTable.remove(bundlePath);
 		plugins.remove(plugin);
 		nameToPlugin.remove(plugin.getName());
+	}
+
+	@Override
+	public Map<String, Plugin> getPluginMap() {
+		return this.nameToPlugin;
+	}
+
+	@Override
+	public void enablePlugin(Plugin plugin) {
+		if (!plugin.isEnabled()) {
+			plugin.start();
+			
+			PluginEnableEvent event = new PluginEnableEvent(plugin);
+			handlerList.callEvent(event);
+		}
+	}
+
+	@Override
+	public void disablePlugin(Plugin plugin) {
+		if (plugin.isEnabled()) {
+			plugin.stop();
+			
+			PluginDisableEvent event = new PluginDisableEvent(plugin);
+			handlerList.callEvent(event);
+		}
 	}
 }

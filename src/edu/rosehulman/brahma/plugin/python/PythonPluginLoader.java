@@ -2,6 +2,8 @@ package edu.rosehulman.brahma.plugin.python;
 
 import java.io.File;
 
+import org.python.util.PythonInterpreter;
+
 import edu.rosehulman.brahma.PluginLoader;
 import edu.rosehulman.brahma.plugin.Plugin;
 
@@ -11,8 +13,19 @@ public class PythonPluginLoader implements PluginLoader {
 	
 	@Override
 	public Plugin loadPlugin(File file) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+		PythonPlugin result = null;
+		
+		try {
+			PythonHooks hooks = new PythonHooks();
+			PythonInterpreter interpreter = new PythonInterpreter();
+			
+			interpreter.exec("import __builtin__");
+			interpreter.exec("__builtin__.hook = hook");
+			interpreter.exec("__builtin__.info = info");
+		} catch (Exception e) {
+			// TODO
+		}
+		return result;
 	}
 
 	@Override

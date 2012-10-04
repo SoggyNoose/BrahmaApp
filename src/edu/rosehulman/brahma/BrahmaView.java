@@ -2,11 +2,17 @@ package edu.rosehulman.brahma;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -18,6 +24,8 @@ import javax.swing.event.ListSelectionListener;
 
 import edu.rosehulman.brahma.events.EventHandler;
 import edu.rosehulman.brahma.events.Listener;
+import edu.rosehulman.brahma.events.plugin.PluginDisableEvent;
+import edu.rosehulman.brahma.events.plugin.PluginEnableEvent;
 import edu.rosehulman.brahma.events.plugin.PluginLoadEvent;
 import edu.rosehulman.brahma.events.plugin.PluginUnloadEvent;
 import edu.rosehulman.brahma.plugin.Plugin;
@@ -27,15 +35,20 @@ public class BrahmaView implements Listener {
 		private JFrame frame;
 		private JPanel contentPane;
 		private JLabel bottomLabel;
+		private JPanel topBar;
 		private JList sideList;
 		private DefaultListModel<String> listModel;
 		private JPanel centerEnvelope;
+		private JPanel pluginContent;
 		
 		// For holding registered plugin
 		private Plugin currentPlugin;
 		
+		// Holds a content pane for each plugin for resuming
+		private Map<Plugin, JPanel> contentMap = new HashMap<Plugin, JPanel>();
+		
 		// Plugin manager
-		PluginManager pluginManager;
+		IPluginManager pluginManager;
 		
 		public BrahmaView() {
 			try {
@@ -66,10 +79,35 @@ public class BrahmaView implements Listener {
 			centerEnvelope = new JPanel(new BorderLayout());
 			centerEnvelope.setBorder(BorderFactory.createLineBorder(Color.black, 5));
 			
+			topBar = new JPanel();
+			topBar.setPreferredSize(new Dimension(500, 50));
+			JButton enableButton = new JButton("Enable Plugin");
+			JButton disableButton = new JButton("Disable Plugin");
+			
+			enableButton.addActionListener(new ActionListener() {
+				
+				@Override
+				public void actionPerformed(ActionEvent arg0) {
+					BrahmaView.this.pluginManager.enablePlugin(currentPlugin);
+				}
+			});
+			
+			disableButton.addActionListener(new ActionListener() {
+				
+				@Override
+				public void actionPerformed(ActionEvent arg0) {
+					BrahmaView.this.pluginManager.disablePlugin(currentPlugin);
+				}
+			});
+			
+			topBar.add(enableButton);
+			topBar.add(disableButton);
+			
 			// Lets lay them out, contentPane by default has BorderLayout as its layout manager
 			contentPane.add(centerEnvelope, BorderLayout.CENTER);
 			contentPane.add(scrollPane, BorderLayout.EAST);
 			contentPane.add(bottomLabel, BorderLayout.SOUTH);
+			contentPane.add(topBar, BorderLayout.NORTH);
 			
 			// Add action listeners
 			sideList.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
@@ -82,34 +120,32 @@ public class BrahmaView implements Listener {
 					// List has finalized selection, let's process further
 					int index = sideList.getSelectedIndex();
 					String id = listModel.elementAt(index);
-					Plugin plugin = pluginManager.nameToPlugin.get(id);
+					Plugin plugin = pluginManager.getPluginMap().get(id);
 					
 					if(plugin == null || plugin.equals(currentPlugin))
 						return;
 					
-					// Stop previously running plugin
-					if(currentPlugin != null)
-						currentPlugin.stop();
-					
+					// Store away current panel
+					if (currentPlugin != null) {
+						contentMap.put(currentPlugin, pluginContent);
+					}
+										
 					// The newly selected plugin is our current plugin
 					currentPlugin = plugin;
 					
-					// Clear previous working area
 					centerEnvelope.removeAll();
 					
-					// Create new working area
-					JPanel centerPanel = new JPanel();
-					centerEnvelope.add(centerPanel, BorderLayout.CENTER); 
+					// Attempt to retrieve existing panel
+					pluginContent = contentMap.get(currentPlugin);
+					if (pluginContent == null) {
+						pluginContent = new JPanel();
+						// Ask plugin to layout the working area
+						currentPlugin.layout(pluginContent);
+					}
+					centerEnvelope.add(pluginContent, BorderLayout.CENTER); 
 					
-					// Ask plugin to layout the working area
-					currentPlugin.layout(centerPanel);
 					contentPane.revalidate();
 					contentPane.repaint();
-					
-					// Start the plugin
-					currentPlugin.start();
-					
-					bottomLabel.setText("The " + currentPlugin.getName() + " is running!");
 				}
 			});
 			
@@ -147,5 +183,15 @@ public class BrahmaView implements Listener {
 		public void removePluginFromList(PluginUnloadEvent event) {
 			listModel.removeElement(event.getPlugin().getName());
 			this.bottomLabel.setText("The " + event.getPlugin().getName() + " plugin has been recently removed!");
+		}
+		
+		@EventHandler
+		public void pluginEnabled(PluginEnableEvent event) {
+			bottomLabel.setText("The " + event.getPlugin().getName() + " is running!");
+		}
+		
+		@EventHandler
+		public void pluginDisabled(PluginDisableEvent event) {
+			bottomLabel.setText("The " + event.getPlugin().getName() + " has stopped running!");
 		}
 }

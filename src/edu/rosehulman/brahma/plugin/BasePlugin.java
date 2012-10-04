@@ -3,7 +3,7 @@ package edu.rosehulman.brahma.plugin;
 public abstract class BasePlugin implements Plugin {
 	
 	private String name;
-	private boolean enabled;
+	private boolean enabled = false;
 	
 	public BasePlugin(String name) {
 		this.name = name;
@@ -17,5 +17,15 @@ public abstract class BasePlugin implements Plugin {
 	@Override
 	public boolean isEnabled() {
 		return enabled;
+	}
+	
+	@Override
+	public void start() {
+		enabled = true;
+	}
+	
+	@Override
+	public void stop() {
+		enabled = false;
 	}
 }
