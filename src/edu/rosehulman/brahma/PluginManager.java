@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import edu.rosehulman.brahma.events.Event;
 import edu.rosehulman.brahma.events.HandlerList;
 import edu.rosehulman.brahma.events.Listener;
 import edu.rosehulman.brahma.events.plugin.PluginDisableEvent;
@@ -38,7 +39,7 @@ public class PluginManager implements IPluginManager {
 	public void start() {
 		for (Class<? extends PluginLoader> c : this.loaders) {
 			try {
-				PluginLoader instance = c.newInstance();
+				PluginLoader instance = c.getDeclaredConstructor(IPluginManager.class).newInstance(this);
 				filetypeAssociation.put(instance.getFileType(), instance);
 			} catch (Exception e) {
 				// TODO 
@@ -120,6 +121,7 @@ public class PluginManager implements IPluginManager {
 	public void enablePlugin(Plugin plugin) {
 		if (!plugin.isEnabled()) {
 			plugin.start();
+			plugin.enable();
 			
 			PluginEnableEvent event = new PluginEnableEvent(plugin);
 			handlerList.callEvent(event);
@@ -130,9 +132,15 @@ public class PluginManager implements IPluginManager {
 	public void disablePlugin(Plugin plugin) {
 		if (plugin.isEnabled()) {
 			plugin.stop();
+			plugin.disable();
 			
 			PluginDisableEvent event = new PluginDisableEvent(plugin);
 			handlerList.callEvent(event);
 		}
+	}
+
+	@Override
+	public void callEvent(Event event) {
+		this.handlerList.callEvent(event);
 	}
 }

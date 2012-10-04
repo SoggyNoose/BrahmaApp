@@ -23,4 +23,13 @@ public class CustomEvent implements Event {
 	public Object getInfo(String key) {
 		return infoBundle.get(key);
 	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (CustomEvent.class.isAssignableFrom(obj.getClass())) {
+			CustomEvent event = (CustomEvent)obj;
+			return this.id.equals(event.getId());
+		}
+		return false;
+	}
 }
