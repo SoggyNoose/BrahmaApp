@@ -4,8 +4,8 @@ import org.python.core.PyFunction;
 
 public class PythonHooks {
 
-	PyFunction onLoad;
-	PyFunction onEnable;
-	PyFunction onDisable;
-	PyFunction onUnload;
+	public PyFunction onLoad;
+	public PyFunction onEnable;
+	public PyFunction onDisable;
+	public PyFunction onUnload;
 }

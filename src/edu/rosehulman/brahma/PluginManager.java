@@ -17,6 +17,7 @@ import edu.rosehulman.brahma.events.plugin.PluginEnableEvent;
 import edu.rosehulman.brahma.events.plugin.PluginLoadEvent;
 import edu.rosehulman.brahma.plugin.Plugin;
 import edu.rosehulman.brahma.plugin.java.JavaPluginLoader;
+import edu.rosehulman.brahma.plugin.python.PythonPluginLoader;
 
 public class PluginManager implements IPluginManager {
 	
@@ -28,7 +29,7 @@ public class PluginManager implements IPluginManager {
 	private Map<Path, Plugin> lookupTable = new HashMap<Path, Plugin>();
 	protected Map<String, Plugin> nameToPlugin = new HashMap<String, Plugin>();
 	
-	private final Class[] loaders = { JavaPluginLoader.class }; 
+	private final Class[] loaders = { JavaPluginLoader.class, PythonPluginLoader.class }; 
 	
 	protected PluginManager() throws IOException {
 		this.handlerList = new HandlerList();
