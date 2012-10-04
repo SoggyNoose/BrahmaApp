@@ -19,6 +19,7 @@ import javax.swing.event.ListSelectionListener;
 import edu.rosehulman.brahma.events.EventHandler;
 import edu.rosehulman.brahma.events.Listener;
 import edu.rosehulman.brahma.events.plugin.PluginLoadEvent;
+import edu.rosehulman.brahma.events.plugin.PluginUnloadEvent;
 import edu.rosehulman.brahma.plugin.Plugin;
 
 public class BrahmaView implements Listener {
@@ -139,5 +140,12 @@ public class BrahmaView implements Listener {
 		@EventHandler
 		public void addPluginToList(PluginLoadEvent event) {
 			listModel.addElement(event.getPlugin().getName());
+			this.bottomLabel.setText("The " + event.getPlugin().getName() + " plugin has been recently added!");
+		}
+		
+		@EventHandler
+		public void removePluginFromList(PluginUnloadEvent event) {
+			listModel.removeElement(event.getPlugin().getName());
+			this.bottomLabel.setText("The " + event.getPlugin().getName() + " plugin has been recently removed!");
 		}
 }
